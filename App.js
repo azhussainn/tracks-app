@@ -1,21 +1,58 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { Feather } from '@expo/vector-icons'; 
+import { createBottomTabNavigator } from 'react-navigation-tabs';
+import AccountScreen from './src/screens/AccountScreen';
+import SigninScreen from './src/screens/SigninScreen';
+import SignupScreen from './src/screens/SignupScreen';
+import TrackCreateScreen from './src/screens/TrackCreateScreen';
+import TrackDetailScreen from './src/screens/TrackDetailScreen';
+import TrackListScreen from './src/screens/TrackListScreen';
+import { Provider as AuthProvider } from './src/context/AuthContext';
+import { setNavigator } from './src/navigationRef';
+import ResolveAuthScreen from './src/screens/ResolveAuthScreen';
+import { Provider as LocationProvider } from './src/context/LocationContext';
+import { Provider as TrackProvider } from './src/context/TrackContext'
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+
+const trackListFlow = createStackNavigator({
+    TrackList: TrackListScreen,
+    TrackDetail: TrackDetailScreen,
+})
+
+trackListFlow.navigationOptions = {
+    title: 'Tracks',
+    tabBarIcon: <Feather name="list" size={24} color="black" />
+
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
+const switchNavigator = createSwitchNavigator({
+    ResolveAuth: ResolveAuthScreen,
+    loginFlow: createSwitchNavigator({
+        Signin: SigninScreen,
+        Signup: SignupScreen,
+    }),
+    mainFlow: createBottomTabNavigator({
+        trackListFlow,
+        TrackCreate: TrackCreateScreen,
+        Account: AccountScreen,
+    })
+}, {
+    initialRouteName: 'ResolveAuth'
 });
+
+const App = createAppContainer(switchNavigator)
+
+export default () => {
+    return (
+        <TrackProvider>
+            <LocationProvider>
+                <AuthProvider>
+                    <App ref={(navigator) => setNavigator(navigator)} />
+                </AuthProvider>
+            </LocationProvider>
+        </TrackProvider>
+    )
+}
